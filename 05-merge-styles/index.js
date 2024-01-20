@@ -11,32 +11,38 @@ function makeFilesBundle(input, output, fileType, fileContent) {
     if (err) {
       console.log(err);
     } else {
-      files.forEach(file => {
+      files.forEach((file) => {
         fs.stat(`${input}${file}`, (err, stats) => {
           if (err) {
             console.log(err);
           } else {
-              if (stats.isFile(file)) {
-                if (path.extname(`${input}${file}`) === fileType) {
-                  fs.readFile(`${input}${file}`, 'utf-8',
-                  (err, data) => {
-                    if (err) {
-                      console.log(err);
-                    } else {
-                      fileContent += data + '\n';
-                      fs.writeFile(`${output}bundle${fileType}`,
-                      fileContent, () => {
-                        console.log(`Content of ${file} was added to bundle${fileType}`);
-                      });
-                    }
-                  });
-                }
-             }
+            if (stats.isFile(file)) {
+              if (path.extname(`${input}${file}`) === fileType) {
+                fs.readFile(`${input}${file}`, 'utf-8', (err, data) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                    fileContent += data + '\n';
+                    fs.writeFile(
+                      `${output}bundle${fileType}`,
+                      fileContent,
+                      () => {
+                        console.log(
+                          `Content of ${file} was added to bundle${fileType}`,
+                        );
+                      },
+                    );
+                  }
+                });
+              }
+            }
           }
         });
       });
 
-      console.log(`"bundle${fileType}" was built and inserted to "${output}" directory`);
+      console.log(
+        `"bundle${fileType}" was built and inserted to "${output}" directory`,
+      );
     }
   });
 }

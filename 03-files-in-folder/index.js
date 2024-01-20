@@ -7,11 +7,18 @@ fs.readdir(path, (err, files) => {
     console.log(err); 
   else { 
     files.forEach(file => {
-      let fileName = file.slice(0, file.indexOf('.'));
-      let extension = file.slice(file.indexOf('.') + 1, file.length);  
-      const size = fs.stat(path + file, (err, stats) => {
-        let sizeKB = stats.size / KBYTE_SIZE;
-        console.log(`${fileName} - ${extension} - ${sizeKB}kb`);
+      let fileName = '';
+      let extension = ''; 
+      let sizeKB;
+
+      const fileStat = fs.stat(path + file, (err, stats) => {
+        if (stats.isFile(file)) {
+          fileName = file.slice(0, file.indexOf('.'));
+          extension = file.slice(file.indexOf('.') + 1, file.length);
+          sizeKB = (stats.size / KBYTE_SIZE).toFixed(3);
+
+          console.log(`${fileName} - ${extension} - ${sizeKB}kb`);
+        }
       });
     }) 
   } 

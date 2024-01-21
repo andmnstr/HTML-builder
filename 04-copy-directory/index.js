@@ -1,11 +1,24 @@
 const fs = require('fs');
-const folder = './04-copy-directory/files/';
-const copyFolder = './04-copy-directory/files-copy/';
+const path = require('path');
+const folderPath = path.join(`${__dirname}`, 'files/');
+const cpFolderPath = path.join(`${__dirname}`, 'files-copy/');
 
-function cleanUpDirectory(path) {
+async function createDirectory(path) {
+  fs.access(path, (err) => {
+    if (err) {
+      fs.mkdir(path, { recursive: false }, () => {
+        console.log('Copy of the folder has been created');
+      });
+    } else {
+      console.log('Requested directory is already exist');
+    }
+  });
+}
+
+async function cleanUpDirectory(path) {
   fs.readdir(path, (err, files) => {
     if (err) {
-      console.log(err);
+      console.log('Folder in not exist');
     } else {
       files.forEach((file) => {
         fs.unlink(`${path}${file}`, (err) => {
@@ -20,19 +33,7 @@ function cleanUpDirectory(path) {
   });
 }
 
-function createDirectory(path) {
-  fs.access(path, (err) => {
-    if (err) {
-      fs.mkdir(path, { recursive: false }, () => {
-        console.log('Copy of the folder has been created');
-      });
-    } else {
-      console.log('Requested directory is already exist');
-    }
-  });
-}
-
-function copyFiles(dir1, dir2) {
+async function copyFiles(dir1, dir2) {
   fs.readdir(dir1, (err, files) => {
     if (err) {
       console.log(err);
@@ -50,10 +51,10 @@ function copyFiles(dir1, dir2) {
   });
 }
 
-function copyDir(dir1, dir2) {
-  createDirectory(dir2);
-  cleanUpDirectory(dir2);
-  copyFiles(dir1, dir2);
+async function copyDir(dir1, dir2) {
+  await createDirectory(dir2);
+  await cleanUpDirectory(dir2);
+  await copyFiles(dir1, dir2);
 }
 
-copyDir(folder, copyFolder);
+copyDir(folderPath, cpFolderPath);

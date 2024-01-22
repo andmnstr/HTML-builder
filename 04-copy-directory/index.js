@@ -6,7 +6,7 @@ const cpFolderPath = path.join(`${__dirname}`, 'files-copy/');
 async function createDirectory(path) {
   fs.access(path, (err) => {
     if (err) {
-      fs.mkdir(path, { recursive: false }, () => {
+      fs.mkdir(path, { recursive: true }, () => {
         console.log('Copy of the folder has been created');
       });
     } else {
@@ -21,7 +21,9 @@ async function cleanUpDirectory(path) {
       console.log('Folder in not exist');
     } else {
       files.forEach((file) => {
-        fs.unlink(`${path}${file}`, (err) => {
+        let folder = path + file;
+
+        fs.unlink(folder, (err) => {
           if (err) {
             console.log(err);
           } else {
@@ -39,7 +41,10 @@ async function copyFiles(dir1, dir2) {
       console.log(err);
     } else {
       files.forEach((file) => {
-        fs.cp(`${dir1}${file}`, `${dir2}${file}`, (err) => {
+        let folder = dir1 + file;
+        let cpFolder = dir2 + file;
+
+        fs.cp(folder, cpFolder, (err) => {
           if (err) {
             console.log(`Error was thrown while copy "${file}" file`);
           } else {

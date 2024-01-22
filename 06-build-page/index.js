@@ -1,18 +1,30 @@
 const fs = require('fs');
 const path = require('path');
-const directory = './06-build-page/project-dist/';
-const assetsInput = './06-build-page/assets/';
-const assetsOutput = './06-build-page/project-dist/assets';
-const styleInput = './06-build-page/styles/';
-const styleOutput = './06-build-page/project-dist/';
+const directory = path.join(__dirname, 'project-dist/');
+const assetsInput = path.join(__dirname, 'assets/');
+const assetsOutput = path.join(__dirname, 'project-dist/assets');
+const styleInput = path.join(__dirname, 'styles/');
+const styleOutput = path.join(__dirname, 'project-dist/');
 const styleType = '.css';
 let styleContent = '';
 const styleArgs = [styleInput, styleOutput, styleType, styleContent];
 
+function createDirectory(directory) {
+  fs.access(directory, (err) => {
+    if (err) {
+      fs.mkdir(directory, { recursive: false }, () => {
+        console.log('Copy of the folder has been created');
+      });
+    } else {
+      console.log('Requested directory is already exist');
+    }
+  });
+}
+
 function cleanUpDirectory(directory) {
   fs.readdir(directory, (err, files) => {
     if (err) {
-      console.log(err);
+      console.log('Directory is not exist');
     } else {
       files.forEach((file) => {
         fs.stat(`${directory}${file}`, (err, stat) => {
@@ -33,18 +45,6 @@ function cleanUpDirectory(directory) {
   });
 }
 
-function createDirectory(directory) {
-  fs.access(directory, (err) => {
-    if (err) {
-      fs.mkdir(directory, { recursive: false }, () => {
-        console.log('Copy of the folder has been created');
-      });
-    } else {
-      console.log('Requested directory is already exist');
-    }
-  });
-}
-
 function copyFiles(dir1, dir2) {
   createDirectory(assetsOutput);
 
@@ -53,25 +53,26 @@ function copyFiles(dir1, dir2) {
       console.log(err);
     } else {
       files.forEach((file) => {
-        fs.readdir(dir1 + file, (err, files) => {
+        let filePath = dir1 + file;
+
+        fs.readdir(filePath, (err, files) => {
           if (err) {
             console.log(err);
           } else {
             files.forEach((subFile) => {
-              fs.cp(
-                `${dir1}${file}/${subFile}`,
-                `${dir2}/${file}/${subFile}`,
-                (err) => {
-                  if (err) {
-                    console.log(
-                      `Error was thrown while copy "${file}" file`,
-                      err,
-                    );
-                  } else {
-                    console.log(`File "${file}" was copied`);
-                  }
-                },
-              );
+              let folder = dir1 + file + '/' + subFile;
+              let cpFolder = dir2 + '/' + file + '/' + subFile;
+
+              fs.cp(folder, cpFolder, (err) => {
+                if (err) {
+                  console.log(
+                    `Error was thrown while copy "${file}" file`,
+                    err,
+                  );
+                } else {
+                  console.log(`File "${file}" was copied`);
+                }
+              });
             });
           }
         });
@@ -80,28 +81,35 @@ function copyFiles(dir1, dir2) {
   });
 }
 
-function buildStyleBundle(input, output, fileType, fileContent) {
+function buildStyleBundle(input, output, type, content) {
+  /*-----Initialize 'bundle.css' file before building-----*/
+  fs.writeFile(`${output}style${type}`, content, () => {
+    console.log(`style${type} file was initializing`);
+  });
+
+  /*-----Building 'bundle.css' file after initializing-----*/
   fs.readdir(input, (err, files) => {
     if (err) {
       console.log(err);
     } else {
       files.forEach((file) => {
-        fs.stat(`${input}${file}`, (err, stats) => {
+        let filePath = input + file;
+        fs.stat(filePath, (err, stats) => {
           if (err) {
             console.log(err);
           } else {
             if (stats.isFile(file)) {
-              if (path.extname(`${input}${file}`) === fileType) {
-                fs.readFile(`${input}${file}`, 'utf-8', (err, data) => {
+              if (path.extname(filePath) === type) {
+                fs.readFile(filePath, 'utf-8', (err, data) => {
                   if (err) {
                     console.log(err);
                   } else {
-                    fileContent += data + '\n';
-                    fs.writeFile(
-                      `${output}bundle${fileType}`,
-                      fileContent,
-                      () => {},
-                    );
+                    content += data + '\n';
+                    fs.writeFile(`${output}style${type}`, content, () => {
+                      console.log(
+                        `Content of ${file} was added to style${type}`,
+                      );
+                    });
                   }
                 });
               }
@@ -113,7 +121,16 @@ function buildStyleBundle(input, output, fileType, fileContent) {
   });
 }
 
-createDirectory(directory);
-cleanUpDirectory(directory);
-copyFiles(assetsInput, assetsOutput);
-buildStyleBundle(...styleArgs);
+const create = createDirectory(directory);
+const clean = cleanUpDirectory(directory);
+const cpAssets = copyFiles(assetsInput, assetsOutput);
+const styleBundle = buildStyleBundle(...styleArgs);
+
+async function makeBuild() {
+  create;
+  clean;
+  cpAssets;
+  styleBundle;
+}
+
+makeBuild();

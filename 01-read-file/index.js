@@ -4,8 +4,7 @@ const filePath = path.join(`${__dirname}`, 'text.txt');
 
 const readFile = new fs.ReadStream(filePath, { encoding: 'utf-8' });
 
-readFile.on('readable', () => {
-  let data = readFile.read();
+readFile.on('data', (data) => {
   console.log(data);
 });
 
